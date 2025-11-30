@@ -46,9 +46,9 @@
 
 <body>
     <div class="d-flex" id="wrapper">
-
-        @include('components.toast')
-
+    
+        
+  
 
         @include('layouts.sidebar')
 
@@ -56,6 +56,8 @@
             @include('layouts.navbar')
 
             <div class="container-fluid mt-3">
+
+                
                 @yield('content')
             </div>
         </div>
@@ -92,15 +94,10 @@
 
 
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-        const toastList = toastElList.map(function (toastEl) {
-            return new bootstrap.Toast(toastEl, { delay: 5000 }); // Auto hide after 5 seconds
-        });
-        toastList.forEach(toast => toast.show());
-    });
-    </script>
+ 
+
+
+
 
 
     @stack('scripts')

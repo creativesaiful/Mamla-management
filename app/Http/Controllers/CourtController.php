@@ -42,7 +42,8 @@ class CourtController extends Controller
 
         CourtList::create($request->all());
 
-        return redirect()->route('courts.index')->with('success', 'Court added successfully.');
+       return redirect()->route('courts.index')->with('success', 'Court added successfully.');
+
     }
 
     public function edit(CourtList $court)
