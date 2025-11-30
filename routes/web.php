@@ -1,0 +1,138 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CaseDiaryController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\SmsController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\HomeController;
+use App\Http\Middleware\RedirectIfNotApproved;
+use App\Http\Controllers\CourtController;
+use App\Http\Middleware\ChamberAccess;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
+
+
+Auth::routes(['reset' => true]); // enables password reset routes
+
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// Home page with 'approved' middleware
+Route::get('/', [HomeController::class, 'index'])
+    ->name('dashboard')
+    ->middleware(['auth', RedirectIfNotApproved::class]);
+
+
+// Authentication
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Registration
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
+
+// Pending approval page
+Route::get('/approval-pending', fn() => view('pending'))->name('approval.pending');
+
+// Approved User Access
+Route::middleware(['auth', RedirectIfNotApproved::class])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home.page');
+
+    // Profile Routes
+    Route::get('user/profile', [ProfileController::class, 'profile'])->name('user.profile');
+    Route::get('/profile/edit', [ProfileController::class, 'editProfile'])->name('profile.edit');
+
+
+    Route::put('/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+    // Admin Routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/lawyers', [AdminController::class, 'lawyers'])->name('lawyers');   
+    Route::post('/lawyers/toggle-status', [AdminController::class, 'toggleStatus'])->name('lawyers.toggleStatus');
+
+        Route::get('/lawyers/{lawyer}', [AdminController::class, 'viewLawyer'])->name('lawyers.view');
+      
+        
+
+        
+    });
+
+    // Case Diary
+    
+    Route::prefix('cases')->name('cases.')->group(function () {
+    Route::get('/', [CaseDiaryController::class, 'index'])->name('index');
+    Route::get('/create', [CaseDiaryController::class, 'create'])->name('create');
+    Route::post('/', [CaseDiaryController::class, 'store'])->name('store');
+
+    
+
+    Route::middleware(ChamberAccess::class)->group(function () {
+        Route::get('/{caseDiary}', [CaseDiaryController::class, 'show'])->name('show');
+ 
+        Route::get('/date/create/{caseDiary}', [CaseDiaryController::class, 'nextDateCreate'])->name('next-date-create');
+        Route::post('/date/store/{caseDiary}', [CaseDiaryController::class, 'nextDateStore'])->name('next-date-store');
+
+        Route::get('/date/{date}/edit', [CaseDiaryController::class, 'editDate'])->name('date-edit');
+        Route::put('/date/{date}', [CaseDiaryController::class, 'editedDateUpdate'])->name('edited-date.update');
+
+
+        Route::get('/{caseDiary}/edit', [CaseDiaryController::class, 'edit'])->name('edit');
+        Route::put('/{caseDiary}', [CaseDiaryController::class, 'update'])->name('update');
+        Route::delete('/{caseDiary}', [CaseDiaryController::class, 'destroy'])->name('destroy');
+        
+          Route::post('/generate-docx/{caseDiary}', [CaseDiaryController::class, 'generateDocx'])
+    ->name('generate.docx');
+    });
+
+    Route::get('/search', [CaseDiaryController::class, 'search'])->name('search');
+    Route::get('/pdf-export', [CaseDiaryController::class, 'exportPdf'])->name('export.pdf');
+    });
+
+    // courts
+    Route::prefix('courts')->name('courts.')->group(function () {
+        Route::get('/', [CourtController::class, 'index'])->name('index');
+        Route::get('/create', [CourtController::class, 'create'])->name('create');
+        Route::post('/', [CourtController::class, 'store'])->name('store');
+        Route::get('/{court}/edit', [CourtController::class, 'edit'])->name('edit');
+        Route::put('/{court}', [CourtController::class, 'update'])->name('update');
+        Route::delete('/{court}', [CourtController::class, 'destroy'])->name('destroy');
+
+        
+    });
+
+    // Staff Registration
+    Route::prefix('staff')->name('staff.')->group(function () {
+        Route::get('/', [StaffController::class, 'index'])->name('index'); // Staff list with edit, delete, approve
+        Route::get('/create', [StaffController::class, 'create'])->name('create');
+        Route::post('/store', [StaffController::class, 'store'])->name('store');
+        
+        Route::delete('/{staff}', [StaffController::class, 'destroy'])->name('destroy');
+        Route::get('/{staff}/inactive', [StaffController::class, 'inactive'])->name('inactive');
+        Route::get('/{staff}/active', [StaffController::class, 'active'])->name('active');
+    });
+
+    // SMS & Dynamic DOCX
+    Route::post('/send-sms', [SmsController::class, 'sendSmsBulk'])->name('send.sms');
+
+
+    Route::post('/{case}/comment', [CaseDiaryController::class, 'addComment'])->name('comment.add');
+
+    // Bkash Payment
+    Route::get('/bkash/payment', [PaymentController::class, 'initiate'])->name('bkash.initiate');
+    Route::post('/bkash/create-payment', [PaymentController::class, 'createPayment'])->name('bkash.create');
+    Route::get('/bkash/callback', [PaymentController::class, 'callback'])->name('bkash.callback');
+    });
+
+
+Route::get('/messages', [SmsController::class, 'messages'])->name('messages')->middleware(['auth', RedirectIfNotApproved::class]);
