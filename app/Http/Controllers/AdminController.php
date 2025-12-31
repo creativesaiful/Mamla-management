@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CaseDiary;
+use Brian2694\Toastr\Facades\Toastr;
 
 
 class AdminController extends Controller
@@ -65,7 +66,7 @@ class AdminController extends Controller
     $lawyer = User::findOrFail($request->lawyer_id);
     $lawyer->approved = $request->status;
     $lawyer->save();
-
+    toastr()->success('Lawyer status updated successfully!');
     return response()->json(['message' => 'Lawyer status updated successfully!']);
 }
 

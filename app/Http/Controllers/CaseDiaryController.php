@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\Date;
+use Brian2694\Toastr\Facades\Toastr;
 
 class CaseDiaryController extends Controller
 {
@@ -23,6 +24,8 @@ class CaseDiaryController extends Controller
     
     public function index(Request $request)
     {
+
+      
         $cases = CaseDiary::query();
 
         if (Auth::user()->isAdmin()) {
@@ -120,7 +123,7 @@ class CaseDiaryController extends Controller
         $dateEntry->chamber_id = Auth::user()->chamber_id;
         $dateEntry->save();
 
-
+            Toastr::success('Case created successfully.', 'Success');
         return redirect()->route('cases.index')->with('success', 'Case created successfully.');
     }
 
@@ -163,6 +166,7 @@ public function editedDateUpdate(Request $request, Date $date)
 
     $date->update($validated);
 
+        Toastr::success('Date updated successfully.', 'Success');
     return redirect()->route('dashboard')->with('success', 'Date updated successfully.');
 }
 
@@ -191,6 +195,7 @@ public function editedDateUpdate(Request $request, Date $date)
  
         
         $caseDiary->update($validated);
+            Toastr::success('Case updated successfully.', 'Success');
 
         return redirect()->route('cases.index')->with('success', 'Case updated successfully.');
     }
@@ -225,6 +230,8 @@ public function editedDateUpdate(Request $request, Date $date)
         $dateEntry->chamber_id = Auth::user()->chamber_id;
         $dateEntry->save();
 
+         Toastr::success('Next date added successfully.', 'Success');
+
         return redirect()->route('cases.show', $caseDiary->id)->with('success', 'Next date added successfully.');
     }
 
@@ -232,6 +239,7 @@ public function editedDateUpdate(Request $request, Date $date)
     {
         $this->authorize('delete', $caseDiary);
         $caseDiary->delete();
+            Toastr::success('Case deleted successfully.', 'Success');
         return redirect()->route('cases.index')->with('success', 'Case deleted successfully.');
     }
 
@@ -314,6 +322,8 @@ $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(storage_path('app/
             'user_id' => Auth::id(),
             'comment_text' => $request->comment_text
         ]);
+
+        
         
         return back()->with('success', 'Comment added successfully.');
     }

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Brian2694\Toastr\Facades\Toastr;
+
 
 class StaffController extends Controller
 {
@@ -54,8 +56,10 @@ class StaffController extends Controller
 
 
         if($stuff){
+            toastr::success('Staff member created successfully.', 'Success');
             return redirect()->route('staff.index')->with('status', 'Staff member created successfully.');
         }else{
+            toastr::error('Something went wrong.', 'Error');
             return redirect()->route('staff.create')->with('status', 'Something went wrong.');
         }
 
@@ -74,6 +78,8 @@ class StaffController extends Controller
         $staffMember->approved = false;
         $staffMember->save();
 
+        toastr()->success('Staff member deactivated successfully.', 'Success');
+
         return redirect()->route('staff.index')->with('status', 'Staff member deactivated successfully.');
     }
 
@@ -88,6 +94,7 @@ class StaffController extends Controller
         $staffMember->approved = true;
         $staffMember->save();
 
+        toastr()->success('Staff member activated successfully.', 'Success');
         return redirect()->route('staff.index')->with('status', 'Staff member activated successfully.');
     }
 }

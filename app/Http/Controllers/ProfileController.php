@@ -7,8 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
-
-use Flasher\Laravel\Facade\Flasher;
+use Brian2694\Toastr\Facades\Toastr;
 
 
 
@@ -94,7 +93,7 @@ class ProfileController extends Controller
 
         $user->save();
  
-    Flasher::addSuccess('Profile updated successfully!');
+     toastr::success('Profile updated successfully.', 'Success');
 
     return redirect()->route('user.profile')->with('status', 'Profile updated successfully.');
 }
@@ -119,7 +118,7 @@ class ProfileController extends Controller
          $user->password = Hash::make($request->new_password);
          $user->save();
     
-         Flasher::addSuccess('Password updated successfully!');
+        toastr::success('Password updated successfully.', 'Success');
     
          return redirect()->route('user.profile')->with('status', 'Password updated successfully.');
     }

@@ -1,123 +1,111 @@
 @extends('layouts.app')
 
-@push('styles')
-<!-- DataTables CSS -->
-
-
-
-<style> 
-/* Highlight color for matched search text */
-.highlight {
-    background-color: yellow;
-    padding: 0 2px;
-    border-radius: 3px;
-}
-
-/* Optional: make the custom search box bigger */
-#search-input {
-    font-size: 16px;
-    height: 42px;
-}
-    #cases-table_filter {
-    display: none; /* Hide default search box */
-}
-
-</style>
-@endpush
-
 @section('content')
-<div class="container-fluid">
-    <h2>Case Diaries</h2>
-    <hr>
-    
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    
-    <div class="row mb-3">
-        <div class="col-md-6 mb-2">
-            <div class="input-group mb-3">
-                <input type="text" id="search-input" class="form-control" placeholder="🔍 Search cases...">
+<div class="container">
+    <div class="card p-3">
+
+        @if ($cases->isEmpty())
+            <p>No cases scheduled for today.</p>
+        @else
+            <div class="table-responsive">
+                <table id="today-cases-table" class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all-today"></th>
+                            <th>মামলা নং</th>
+                            <th>কোর্ট</th>
+                            <th>বাদী</th>
+                            <th>বিবাদী</th>
+                            <th>মোবাইল</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($cases as $case)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="case-checkbox" data-mobile="{{ $case->client_mobile }}">
+                                </td>
+                                <td>{{ $case->case_number }}</td>
+                                <td>{{ $case->court->court_name }}</td>
+                                <td>{{ $case->plaintiff_name }}</td>
+                                <td>{{ $case->defendant_name }}</td>
+                                <td><a href="tel:{{ $case->client_mobile }}">{{ $case->client_mobile }}</a></td>
+                                <td>
+                                    <a href="{{ route('cases.edit', $case) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <a href="{{ route('cases.show', $case) }}" class="btn btn-sm btn-info">View</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
 
-       
-    </div>
-
-    <div id="case-list-container">
-        {{-- Make sure inside this partial table tag has id="cases-table" --}}
-        @include('cases.partials.case-list-table')
+            {{-- SEND SMS BUTTON --}}
+            <button class="btn btn-success mt-3" onclick="showSmsModal()">Send SMS to Selected</button>
+        @endif
     </div>
 </div>
 
-<!-- SMS Modal -->
-<div class="modal fade" id="smsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Send SMS to Clients</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+{{-- SMS MODAL --}}
+<div class="modal fade" id="smsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('send.sms') }}" method="POST">
+            @csrf
+            <div class="modal-content p-3">
+
+                <h4>Send SMS to Clients</h4>
+
+                {{-- Static message --}}
+                <textarea id="sms-message" class="form-control mt-2" name="sms_text" rows="5" required>
+আপনার মামলার আপডেট এসেছে। অনুগ্রহ করে সময়মতো পদক্ষেপ গ্রহণ করুন।
+                </textarea>
+
+                {{-- HIDDEN INPUT FOR PHONE NUMBERS --}}
+                <input type="hidden" name="mobiles" id="selectedMobiles">
+
+                <button class="btn btn-primary mt-3">Send Now</button>
             </div>
-            <div class="modal-body">
-                <form id="sms-form">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="sms-numbers" class="form-label">Recipients</label>
-                        <input type="text" id="sms-numbers" class="form-control" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sms-message" class="form-label">Message</label>
-                        <textarea id="sms-message" class="form-control" rows="4" required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="sendSms()">Send</button>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 @endsection
 
 @push('scripts')
-
-
-
 <script>
-$(document).ready(function () {
-    let table = $('#cases-table').DataTable({
+document.addEventListener('DOMContentLoaded', function() {
+
+    // DataTable
+    $('#today-cases-table').DataTable({
         dom: 'Bfrtip',
         paging: true,
-        pageLength: 10,
+        pageLength: 25,
         lengthChange: true,
         info: true,
-        searchHighlight: true,
         buttons: [
-            {
-                extend: 'pdfHtml5',
-                text: '📄 Export PDF',
-                className: 'btn btn-danger btn-sm',
-                exportOptions: {
-                    columns: ':not(:last-child)'  // exclude last column (Actions)
-                }
-            },
-            {
-                extend: 'print',
-                text: '🖨️ Print Table',
-                className: 'btn btn-success btn-sm',
-                exportOptions: {
-                    columns: ':not(:last-child)'  // exclude last column (Actions)
-                }
-            }
+            { extend: 'pdfHtml5', text: '📄 Export PDF', className: 'btn btn-danger btn-sm', exportOptions: { columns: ':not(:first-child):not(:last-child)' } },
+            { extend: 'print', text: '🖨️ Print Table', className: 'btn btn-success btn-sm', exportOptions: { columns: ':not(:first-child):not(:last-child)' } }
         ]
     });
 
-    // Custom search box
-    $('#search-input').on('keyup', function () {
-        table.search(this.value).draw();
+    // Select all
+    document.getElementById('select-all-today').addEventListener('change', function(e){
+        document.querySelectorAll('#today-cases-table .case-checkbox').forEach(cb => cb.checked = e.target.checked);
     });
 });
 
+// Show SMS modal
+function showSmsModal() {
+    let selected = document.querySelectorAll('#today-cases-table .case-checkbox:checked');
+    if(selected.length === 0) { alert('Please select at least one case.'); return; }
+
+    let phones = [];
+    selected.forEach(cb => phones.push(cb.dataset.mobile));
+
+    document.getElementById('selectedMobiles').value = phones.join(',');
+    
+    const smsModal = new bootstrap.Modal(document.getElementById('smsModal'));
+    smsModal.show();
+}
 </script>
 @endpush

@@ -11,6 +11,7 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        
 
     <style>
         .sidebar {
@@ -41,6 +42,8 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
 
+
+    <link rel="stylesheet" href="http://cdn.bootcss.com/toastr.js/latest/css/toastr.min.css">
     @stack('styles')
 </head>
 
@@ -86,6 +89,9 @@
     <!-- DataTables Search Highlight -->
     <script src="https://cdn.datatables.net/plug-ins/1.13.6/features/searchHighlight/dataTables.searchHighlight.min.js"></script>
     <script src="https://bartaz.github.io/sandbox.js/jquery.highlight.js"></script>
+
+       <script src="http://cdn.bootcss.com/toastr.js/latest/js/toastr.min.js"></script>
+        {!! Toastr::message() !!}
 
     <!-- App JS -->
     <script src="{{ asset('assets/js/app.js') }}"></script>

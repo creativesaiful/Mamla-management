@@ -66,7 +66,7 @@ $(document).ready(function() {
     $('#smsTable').DataTable({
         responsive: true,
         pageLength: 100,
-        order: [[5, 'desc']],
+        order: [[5, 'asc']],
         dom: 'Bfltip', // Buttons + filter + table + pagination
         buttons: [
             'pdf'

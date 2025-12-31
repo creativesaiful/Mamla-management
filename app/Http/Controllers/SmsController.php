@@ -7,6 +7,8 @@ use App\Models\CaseDiary;
 use App\Models\Date;
 use App\Jobs\SendBulkSmsJob;
 use App\Models\SmsLog;
+use Brian2694\Toastr\Facades\Toastr;
+
 
 
 class SmsController extends Controller
@@ -53,6 +55,8 @@ class SmsController extends Controller
             ));
         }
 
+        toastr::success('SMS queued — delivering soon.', 'Success');
+
         return back()->with('success', 'SMS queued — delivering soon.');
     }
 
@@ -62,9 +66,9 @@ class SmsController extends Controller
     // Fetch all SMS logs for the user's chamber
     $messages = SmsLog::where('chamber_id', auth()->user()->chamber_id)
         ->with('user') // eager load user to avoid N+1
-        ->orderBy('created_at', 'desc')
-        ->get(); // get() instead of paginate(), let DataTables handle pagination
-
+        ->latest()
+        ->get();
+       
     return view('sms.messages', compact('messages'));
 }
 

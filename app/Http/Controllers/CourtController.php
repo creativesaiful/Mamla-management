@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CourtList;
+use Brian2694\Toastr\Facades\Toastr;
+
 
 class CourtController extends Controller
 {
@@ -42,6 +44,8 @@ class CourtController extends Controller
 
         CourtList::create($request->all());
 
+        toastr::success('Court added successfully.', 'Success');
+
        return redirect()->route('courts.index')->with('success', 'Court added successfully.');
 
     }
@@ -59,13 +63,14 @@ class CourtController extends Controller
         ]);
 
         $court->update($request->all());
-
+        toastr::success('Court updated successfully.', 'Success');
         return redirect()->route('courts.index')->with('success', 'Court updated successfully.');
     }
 
     public function destroy(CourtList $court)
     {
         $court->delete();
+        toastr::success('Court deleted successfully.', 'Success');
         return redirect()->route('courts.index')->with('success', 'Court deleted successfully.');
     }
 }

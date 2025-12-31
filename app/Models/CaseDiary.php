@@ -46,4 +46,7 @@ class CaseDiary extends Model
     {
         return $this->hasMany(Date::class, 'case_id');
     }
+
+    
+
 }

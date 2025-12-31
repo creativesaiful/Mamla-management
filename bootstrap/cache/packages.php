@@ -11,6 +11,17 @@
       0 => 'Barryvdh\\DomPDF\\ServiceProvider',
     ),
   ),
+  'brian2694/laravel-toastr' => 
+  array (
+    'aliases' => 
+    array (
+      'Toastr' => 'Brian2694\\Toastr\\Facades\\Toastr',
+    ),
+    'providers' => 
+    array (
+      0 => 'Brian2694\\Toastr\\ToastrServiceProvider',
+    ),
+  ),
   'laravel/pail' => 
   array (
     'providers' => 
